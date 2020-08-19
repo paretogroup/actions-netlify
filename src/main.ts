@@ -73,7 +73,9 @@ export async function run(inputs: Inputs): Promise<void> {
     const deployMessage: string | undefined = inputs.deployMessage()
     const productionBranch: string | undefined = inputs.productionBranch()
     const enablePullRequestComment: boolean = inputs.enablePullRequestComment()
-    const customPullRequestComment: string | undefined = inputs.customPullRequestComment()
+    const customPullRequestComment:
+      | string
+      | undefined = inputs.customPullRequestComment()
     const enableCommitComment: boolean = inputs.enableCommitComment()
     const overwritesPullRequestComment: boolean = inputs.overwritesPullRequestComment()
     const netlifyConfigPath: string | undefined = inputs.netlifyConfigPath()
