@@ -38,7 +38,7 @@ export const defaultInputs: Inputs = {
     return (core.getInput('enable-pull-request-comment') || 'true') === 'true'
   },
   customPullRequestComment() {
-    return core.getInput('pull-request-comment') || undefined
+    return core.getInput('custom-pull-request-comment') || undefined
   },
   enableCommitComment() {
     // Default: true
