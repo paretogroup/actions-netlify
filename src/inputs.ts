@@ -8,6 +8,7 @@ export interface Inputs {
   productionBranch(): string | undefined
   productionDeploy(): boolean
   enablePullRequestComment(): boolean
+  customPullRequestComment(): string | undefined
   enableCommitComment(): boolean
   githubToken(): string
   overwritesPullRequestComment(): boolean
@@ -35,6 +36,9 @@ export const defaultInputs: Inputs = {
   enablePullRequestComment() {
     // Default: true
     return (core.getInput('enable-pull-request-comment') || 'true') === 'true'
+  },
+  customPullRequestComment() {
+    return core.getInput('pull-request-comment') || undefined
   },
   enableCommitComment() {
     // Default: true
