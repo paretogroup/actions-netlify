@@ -125,85 +125,98 @@ export async function run(inputs: Inputs): Promise<void> {
 
     // Get GitHub token
     const githubToken = inputs.githubToken()
-    if (githubToken !== '') {
-      const markdownComment = `${commentIdentifierString}\n${message}`
+    if (githubToken === '') {
+      return
+    }
+    const markdownComment = `${commentIdentifierString}\n${message}`
 
-      // Create GitHub client
-      const githubClient = getOctokit(githubToken)
+    // Create GitHub client
+    const githubClient = getOctokit(githubToken)
 
-      if (enableCommitComment) {
-        const commitCommentParams = {
+    if (enableCommitComment) {
+      const commitCommentParams = {
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        commit_sha: context.sha,
+        body: markdownComment
+      }
+      // TODO: Remove try
+      // NOTE: try-catch is experimentally used because commit message may not be done in some conditions.
+      try {
+        // Comment to the commit
+        await githubClient.repos.createCommitComment(commitCommentParams)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err, JSON.stringify(commitCommentParams, null, 2))
+      }
+    }
+
+    // If it is a pull request and enable comment on pull request
+    if (context.issue.number !== undefined) {
+      if (enablePullRequestComment) {
+        let commentId: number | undefined = undefined
+        if (overwritesPullRequestComment) {
+          // Find issue comment
+          commentId = await findIssueComment(githubClient)
+        }
+
+        // NOTE: if not overwrite, commentId is always undefined
+        if (commentId !== undefined) {
+          // Update comment of the deploy URL
+          await githubClient.issues.updateComment({
+            owner: context.issue.owner,
+            repo: context.issue.repo,
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            comment_id: commentId,
+            body: markdownComment
+          })
+        } else {
+          // Comment the deploy URL
+          await githubClient.issues.createComment({
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: markdownComment
+          })
+        }
+      }
+    }
+
+    try {
+      const environment =
+        inputs.githubDeploymentEnvironment() ??
+        (productionDeploy
+          ? 'production'
+          : context.issue.number !== undefined
+          ? 'pull request'
+          : 'commit')
+      // Create GitHub Deployment
+      await createGitHubDeployment(githubClient, deployUrl, environment)
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err)
+    }
+
+    if (inputs.enableCommitStatus()) {
+      try {
+        // When "pull_request", context.payload.pull_request?.head.sha is expected SHA.
+        // (base: https://github.community/t/github-sha-isnt-the-value-expected/17903/2)
+        const sha = context.payload.pull_request?.head.sha ?? context.sha
+        await githubClient.repos.createCommitStatus({
           owner: context.repo.owner,
           repo: context.repo.repo,
+          context: 'Netlify',
+          description: 'Netlify deployment',
+          state: 'success',
+          sha,
           // eslint-disable-next-line @typescript-eslint/camelcase
-          commit_sha: context.sha,
-          body: markdownComment
-        }
-        // TODO: Remove try
-        // NOTE: try-catch is experimentally used because commit message may not be done in some conditions.
-        try {
-          // Comment to the commit
-          await githubClient.repos.createCommitComment(commitCommentParams)
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.error(err, JSON.stringify(commitCommentParams, null, 2))
-        }
-      }
-
-      if (context.issue.number === undefined) {
-        try {
-          const environment = productionDeploy ? 'production' : 'commit'
-          // Create GitHub Deployment
-          await createGitHubDeployment(githubClient, deployUrl, environment)
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.error(err)
-        }
-      }
-
-      // If it is a pull request and enable comment on pull request
-      if (context.issue.number !== undefined) {
-        if (enablePullRequestComment) {
-          let commentId: number | undefined = undefined
-          if (overwritesPullRequestComment) {
-            // Find issue comment
-            commentId = await findIssueComment(githubClient)
-          }
-
-          // NOTE: if not overwrite, commentId is always undefined
-          if (commentId !== undefined) {
-            // Update comment of the deploy URL
-            await githubClient.issues.updateComment({
-              owner: context.issue.owner,
-              repo: context.issue.repo,
-              // eslint-disable-next-line @typescript-eslint/camelcase
-              comment_id: commentId,
-              body: markdownComment
-            })
-          } else {
-            // Comment the deploy URL
-            await githubClient.issues.createComment({
-              // eslint-disable-next-line @typescript-eslint/camelcase
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: markdownComment
-            })
-          }
-        }
-
-        try {
-          const environmentUrl = deploy.deploy.deploy_ssl_url
-          // Create GitHub Deployment
-          await createGitHubDeployment(
-            githubClient,
-            environmentUrl,
-            'pull request'
-          )
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.error(err)
-        }
+          target_url: deployUrl
+        })
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err)
       }
     }
   } catch (error) {

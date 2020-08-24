@@ -59,12 +59,14 @@ jobs:
 - `enable-pull-request-comment: true` Comment on pull request (default: true)
 - `custom-pull-request-comment: true` Custom message to use on pull request comment
 - `enable-commit-comment: true` Comment on GitHub commit (default: true)
+- `enable-commit-status: true` GitHub commit status (default: true)
 - `overwrites-pull-request-comment: true` Overwrites comment on pull request (default: true)
 - `netlify-config-path: ./netlify.toml` Path to `netlify.toml` (default: undefined)
 - `functions-dir` Netlify functions output directory (default: undefined)
 - `alias` Specifies the prefix for the deployment URL (default: Netlify build ID)
   - `alias: ${{ github.head_ref }}` replicates the [branch deploy prefix](https://docs.netlify.com/site-deploys/overview/#definitions)
   - `alias: deploy-preview-${{ github.event.number }}` replicates the [deploy preview prefix](https://docs.netlify.com/site-deploys/overview/#definitions)
+- `github-deployment-environment` Environment name of GitHub Deployments
 
 ### Paths are relative to the project's root
 All paths (eg, `publish-dir`, `netlify-config-path`, `functions-dir`) are relative to the project's root or absolute paths.

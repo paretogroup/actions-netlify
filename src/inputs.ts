@@ -10,10 +10,12 @@ export interface Inputs {
   enablePullRequestComment(): boolean
   customPullRequestComment(): string | undefined
   enableCommitComment(): boolean
+  enableCommitStatus(): boolean
   githubToken(): string
   overwritesPullRequestComment(): boolean
   netlifyConfigPath(): string | undefined
   alias(): string | undefined
+  githubDeploymentEnvironment(): string | undefined
 }
 
 export const defaultInputs: Inputs = {
@@ -44,6 +46,10 @@ export const defaultInputs: Inputs = {
     // Default: true
     return (core.getInput('enable-commit-comment') || 'true') === 'true'
   },
+  enableCommitStatus() {
+    // Default: true
+    return (core.getInput('enable-commit-status') || 'true') === 'true'
+  },
   githubToken() {
     return core.getInput('github-token')
   },
@@ -58,5 +64,8 @@ export const defaultInputs: Inputs = {
   },
   alias() {
     return core.getInput('alias') || undefined
+  },
+  githubDeploymentEnvironment(): string | undefined {
+    return core.getInput('github-deployment-environment') || undefined
   }
 }

@@ -29,6 +29,9 @@ inputs:
   enable-commit-comment:
     description: Enable commit comment
     required: false
+  enable-commit-status:
+    description: Enable GitHub commit status
+    required: false
   overwrites-pull-request-comment:
     description: Overwrites pull request comment
     required: false
@@ -37,6 +40,9 @@ inputs:
     required: false
   alias:
     description: Specifies the prefix for the deployment URL
+    required: false
+  github-deployment-environment:
+    description: Environment name of GitHub Deployments
     required: false
 outputs:
   deploy-url:
