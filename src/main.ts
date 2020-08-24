@@ -73,6 +73,9 @@ export async function run(inputs: Inputs): Promise<void> {
     const deployMessage: string | undefined = inputs.deployMessage()
     const productionBranch: string | undefined = inputs.productionBranch()
     const enablePullRequestComment: boolean = inputs.enablePullRequestComment()
+    const customPullRequestComment:
+      | string
+      | undefined = inputs.customPullRequestComment()
     const enableCommitComment: boolean = inputs.enableCommitComment()
     const overwritesPullRequestComment: boolean = inputs.overwritesPullRequestComment()
     const netlifyConfigPath: string | undefined = inputs.netlifyConfigPath()
@@ -104,9 +107,13 @@ export async function run(inputs: Inputs): Promise<void> {
       )
     }
     // Create a message
-    const message = productionDeploy
+    let message = productionDeploy
       ? `🎉 Published on ${deploy.deploy.ssl_url} as production\n🚀 Deployed on ${deploy.deploy.deploy_ssl_url}`
       : `🚀 Deployed on ${deploy.deploy.deploy_ssl_url}`
+
+    if (customPullRequestComment) {
+      message = `${customPullRequestComment}\n${deploy.deploy.deploy_ssl_url}`
+    }
     // Print the URL
     process.stdout.write(`${message}\n`)
 

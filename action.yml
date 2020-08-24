@@ -23,6 +23,9 @@ inputs:
   enable-pull-request-comment:
       description: Enable pull request comment
       required: false
+  custom-pull-request-comment:
+      description: Customize pull request comment
+      required: false
   enable-commit-comment:
     description: Enable commit comment
     required: false
